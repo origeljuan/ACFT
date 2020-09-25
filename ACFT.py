@@ -5,7 +5,7 @@ by Juan Origel
 from time import strptime
 import string, json
 
-with open("ACFT.json", "r") as acft_table:
+with open("ACFTtime.json", "r") as acft_table:
     acft_data = json.load(acft_table)
 
 def main():
@@ -217,19 +217,15 @@ def function_tmr(tmr):
     if tmr.isalpha():
         tmr = function_tmr(input(str("Please enter time for 2 Mile Run in (M:S) format: ")))
         return tmr
-    if tmr in acft_data["2MileRun"]:
+    tmr = convert_tmr(tmr)
+    if str(tmr) in acft_data["2MileRun"]:
         return acft_data["2MileRun"][str(tmr)]
-    elif time_format(tmr):
-        minutes, seconds = tmr.split(":")
-        minutes = int(minutes)
-        seconds = int(seconds)
-        if minutes == 13 and seconds < 31:
-            return 100
-        if minutes == 22 and seconds > 47:
-            return 0
-        else:
-            tmr = function_tmr(input(str("Please enter time for 2 Mile Run in (M:S) format: ")))
-            return tmr
+    elif int(tmr) < 810:
+        return 100
+    elif int(tmr) > 1368:
+        return 0
+    else:
+        return round_2mr(tmr)
 
 def time_format(tmr):
     try:
@@ -238,11 +234,37 @@ def time_format(tmr):
     except ValueError:
         return False
 
+def round_2mr(tmr):
+    d = acft_data["2MileRun"]
+    dlist = tmr_keylist(d)
+    flist = []
+    for items in dlist:
+        flist.append(int(items))
+    diff = lambda list_value: abs(list_value - int(tmr))
+    closest = min(flist, key=diff)
+    tmr_pts = (acft_data["2MileRun"][str(closest)])
+    tmr = closest
+    return tmr_pts
+
+def tmr_keylist(d):
+    key_list = []
+    for key in d.keys():
+        key_list.append(key)
+    return key_list
+
+
 def pass_fail_tmr(mos, tmr):
     if tmr >= mos:
         return "Pass"
     if tmr <= mos:
         return "Failed"
+
+def convert_tmr(tmr):
+    minutes, seconds = tmr.split(":")
+    minutes = int(minutes)
+    seconds = int(seconds)
+    tis = (minutes * 60) + (seconds)
+    return tis
 
 if __name__ == "__main__":
     main()
